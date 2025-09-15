@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GHOST.SYS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @font-face {
+          font-family: 'W95FA';
+          src: url('https://cdn.stylebot.me/fonts/w95fa.woff2') format('woff2');
+      }
+      body {
+        font-family: 'Tahoma', 'Geneva', sans-serif;
+        font-size: 12px;
+        background-color: #008080;
+        user-select: none;
+      }
+      .w95-button {
+        border-width: 2px;
+        border-style: solid;
+        border-color: #ffffff #808080 #808080 #ffffff;
+        box-shadow: 1px 1px 0px 0px rgba(0,0,0,1);
+      }
+      .w95-button:active {
+        border-color: #808080 #ffffff #ffffff #808080;
+        box-shadow: none;
+        transform: translate(1px, 1px);
+      }
+      .w95-inset {
+        border-width: 2px;
+        border-style: solid;
+        border-color: #808080 #ffffff #ffffff #808080;
+      }
+      .w95-outset {
+        border-width: 2px;
+        border-style: solid;
+        border-color: #ffffff #808080 #808080 #ffffff;
+      }
+      .start-menu-sidebar {
+        writing-mode: vertical-rl; 
+        text-orientation: sideways;
+      }
+      .start-menu-sidebar span {
+        transform: rotate(180deg);
+      }
+      @keyframes screen-glitch { 0% { transform: translate(0,0); } 20% { transform: translate(-5px, 5px); } 40% { transform: translate(5px, -5px); } 60% { transform: translate(-5px, -5px); } 80% { transform: translate(5px, 5px); } 100% { transform: translate(0,0); } }
+      .screen-glitch-anim {
+        animation: screen-glitch 0.3s steps(2, end) infinite;
+      }
+      @keyframes icon-appear { 0% { opacity: 0; transform: scale(1.5); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+      .new-icon-anim { animation: icon-appear 0.5s ease-out; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+    "react/": "https://aistudiocdn.com/react@^19.1.1/",
+    "react": "https://aistudiocdn.com/react@^19.1.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
