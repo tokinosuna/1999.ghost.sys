@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHOST.SYS</title>
+    <style>
+        /* --- AESTHETICS OF THE DAMNED --- */
+        @font-face {
+            font-family: 'W95FA';
+            src: url('https://cdn.stylebot.me/fonts/w95fa.woff2') format('woff2');
+        }
+
+        body, html {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            margin: 0;
+            background: #008080; /* Classic Windows Teal */
+        }
+        
+        #desktop {
+            background-size: cover;
+            height: calc(100% - 30px); /* Full height minus taskbar */
+            position: relative;
+            font-family: 'Tahoma', 'Geneva', sans-serif;
+            font-size: 12px;
+            user-select: none;
+        }
+
+        /* --- DESKTOP ICONS --- */
+        .desktop-icon {
+            position: absolute;
+            width: 85px;
+            height: 80px;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .desktop-icon .emoji {
+            width: 48px;
+            height: 48px;
+            font-size: 48px;
+            line-height: 48px;
+        }
+        .desktop-icon span {
+            display: block;
+            margin-top: 5px;
+            word-wrap: break-word;
+        }
+
+        #icon-my-computer { top: 20px; left: 20px; }
+        #icon-messenger { top: 120px; left: 20px; }
+        #icon-netscape { top: 220px; left: 20px; }
+        #icon-winamp { top: 320px; left: 20px; }
+        #icon-diary { top: 420px; left: 20px; display: none; /* Hidden by default */ }
+        
+        @keyframes icon-appear { 0% { opacity: 0; transform: scale(1.5); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+        .new-icon { animation: icon-appear 0.5s ease-out; }
+
+        /* --- THE WINDOWS TO HELL --- */
+        .window {
+            position: absolute;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            min-width: 300px;
+            min-height: 200px;
+            display: none;
+            flex-direction: column;
+        }
+        .title-bar {
+            background: linear-gradient(to right, #000080, #1084d0);
+            color: white;
+            padding: 3px 5px;
+            font-weight: bold;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 20px;
+        }
+        .title-bar-text { display: flex; align-items: center; gap: 5px; }
+        .title-bar-text .emoji { font-size: 16px; width: 16px; height: 16px; }
+        .title-bar-controls button {
+            width: 18px; height: 18px; background-color: #c0c0c0; border: 1px solid;
+            border-color: #ffffff #808080 #808080 #ffffff; font-family: 'W95FA', monospace;
+            font-weight: bold; font-size: 10px; padding: 0; line-height: 14px;
+        }
+        .window-content {
+            padding: 10px; flex-grow: 1; background: white; margin: 3px;
+            border: 1px solid #808080; overflow: auto;
+        }
+        .window-content ul { list-style: none; padding: 0; margin:0; }
+        .window-content li { display: flex; align-items: center; gap: 10px; padding: 5px; cursor: pointer; }
+        .window-content li:hover { background: #000080; color: white; }
+
+        /* --- MESSENGER SPECIFIC STYLES --- */
+        #messenger-window .window-content { display: flex; flex-direction: column; padding: 0; }
+        .chat-history { flex-grow: 1; padding: 10px; overflow-y: auto; background: #fff; border: none; margin:0;}
+        .message { margin-bottom: 10px; }
+        .message .sender { font-weight: bold; }
+        .message.il .sender { color: #A00000; }
+        .message.kielala .sender { color: #4a71c9; }
+        .message.player .sender { color: #0000A0; }
+        .message.system { color: #008000; font-style: italic; text-align: center; }
+        .message img.birthday-image { max-width: 80%; display: block; margin-top: 5px; border: 1px solid #ccc; }
+        .input-area { border-top: 1px solid #808080; background: #c0c0c0; padding: 5px;}
+        #chat-options { display: flex; flex-wrap: wrap; gap: 5px; min-height: 30px; }
+        #chat-options button, #final-word-bank button, .win-button {
+            background-color: #c0c0c0; border: 2px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            padding: 5px 10px; cursor: pointer;
+        }
+        #chat-options button:active, #final-word-bank button:active, .win-button:active { border-color: #808080 #ffffff #ffffff #808080; }
+        #final-confrontation-input { display: none; }
+        #final-message-bar { background: white; border: 1px inset #808080; min-height: 20px; padding: 3px; margin-bottom: 5px; }
+
+        /* --- TASKBAR & START MENU --- */
+        .taskbar {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 30px;
+            background-color: #c0c0c0; border-top: 2px solid #ffffff; display: flex;
+            align-items: center; z-index: 10000;
+        }
+        .start-button {
+            background-color: #c0c0c0; border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+            font-weight: bold; padding: 2px 10px; margin: 0 5px; display:flex; align-items: center; gap: 5px;
+        }
+        .start-button:active { border-color: #808080 #ffffff #ffffff #808080; }
+        .clock {
+            margin-left: auto; border: 1px inset #808080;
+            padding: 2px 5px; margin-right: 5px;
+        }
+        #start-menu {
+            position: absolute; bottom: 30px; left: 0; width: 200px;
+            background-color: #c0c0c0; border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+            z-index: 9999; display: none;
+        }
+        .start-menu-sidebar {
+            background: #000080; color: white; width: 25px;
+            writing-mode: vertical-rl; text-orientation: sideways;
+            font-size: 16px; font-weight: bold; text-align: center;
+            padding: 10px 0;
+        }
+        .start-menu-sidebar span { transform: rotate(180deg); }
+        .start-menu-items { list-style: none; margin: 0; padding: 5px; }
+        .start-menu-items li { display: flex; align-items: center; gap: 10px; padding: 5px; cursor: pointer;}
+        .start-menu-items li:hover { background: #000080; color: white; }
+        .start-menu-separator { height: 1px; background: #808080; border-bottom: 1px solid #fff; margin: 5px; }
+
+        /* --- OVERLAYS & ENDING --- */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 99999; display:none;
+        }
+        #glitch-overlay { animation: screen-glitch 0.3s steps(2, end) infinite; }
+        @keyframes screen-glitch { 0% { transform: translate(0,0); } 20% { transform: translate(-5px, 5px); } 40% { transform: translate(5px, -5px); } 60% { transform: translate(-5px, -5px); } 80% { transform: translate(5px, 5px); } 100% { transform: translate(0,0); } }
+        
+        #shutdown-dialog {
+            background: rgba(0,0,0,0.5); display: flex;
+            justify-content: center; align-items: center;
+        }
+        .shutdown-window {
+            width: 350px; background-color: #c0c0c0;
+            border: 2px solid; border-color: #ffffff #808080 #808080 #ffffff;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            padding: 20px; text-align: center;
+        }
+        .shutdown-window p { margin: 0 0 20px 0; }
+        
+        #fade-to-black {
+            background: black; opacity: 0; transition: opacity 3s;
+            text-align: center; color: gray; font-family: 'Courier New', monospace;
+            padding-top: 45vh; font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+<div id="desktop">
+    <!-- --- DESKTOP ICONS --- -->
+    <div id="icon-my-computer" class="desktop-icon" ondblclick="openWindow('my-computer-window')"><div class="emoji">🖥️</div><span>My Computer</span></div>
+    <div id="icon-messenger" class="desktop-icon" ondblclick="openMessenger()"><div class="emoji">💬</div><span>IL_Messenger</span></div>
+    <div id="icon-netscape" class="desktop-icon" ondblclick="openWindow('netscape-window')"><div class="emoji">🌐</div><span>Netscape</span></div>
+    <div id="icon-winamp" class="desktop-icon" ondblclick="openWindow('winamp-window')"><div class="emoji">🎵</div><span>Winamp</span></div>
+    <div id="icon-diary" class="desktop-icon" ondblclick="openWindow('diary-window')"><div class="emoji">🔒</div><span>Diary_Final_Draft.txt</span></div>
+
+    <!-- --- APPLICATION WINDOWS (ALL HIDDEN) --- -->
+    <div id="search-window" class="window" style="width: 500px; height: 400px; top: 150px; left: 180px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">🔎</div> Search for Files or Folders</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content" style="background: #c0c0c0; border: none; display: flex; flex-direction: column;">
+            <div style="padding: 10px; border: 1px inset #808080; background: white;">
+                <label for="search-term">Search for:</label>
+                <input type="text" id="search-term" style="width: 250px;">
+                <button class="win-button" onclick="runSearch()">Search Now</button>
+            </div>
+            <div id="search-results-content" style="flex-grow: 1; margin-top: 5px; padding: 10px; border: 1px inset #808080; background: white;">
+                <p>Enter a term to search for system-wide information.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="text-viewer-window" class="window" style="width: 550px; height: 350px; top: 220px; left: 280px;">
+        <div class="title-bar"><span class="title-bar-text" id="text-viewer-title"><div class="emoji">📄</div> Notepad</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content" id="text-viewer-content" style="font-family: 'Courier New', monospace; white-space: pre-wrap;"></div>
+    </div>
+
+    <div id="messenger-window" class="window" style="width: 450px; height: 500px; top: 50px; left: 150px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">💬</div> Instant Messenger</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content">
+            <div class="chat-history"></div>
+            <div class="input-area">
+                <div id="chat-options"></div>
+                <div id="final-confrontation-input">
+                    <div id="final-message-bar"></div>
+                    <div id="final-word-bank"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="my-computer-window" class="window" style="width: 400px; height: 300px; top: 80px; left: 200px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">🖥️</div> My Computer</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content">
+             <ul>
+                <li onclick="openFileViewer('drive_c')"><span class="emoji">💽</span> Local Disk (C:)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div id="file-viewer-window" class="window" style="width: 500px; height: 400px; top: 110px; left: 250px;">
+        <div class="title-bar"><span class="title-bar-text" id="file-viewer-title"><div class="emoji">📁</div> File Explorer</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content" id="file-viewer-content"></div>
+    </div>
+    
+    <div id="image-viewer-window" class="window" style="width: 450px; height: 380px; top: 120px; left: 320px;">
+        <div class="title-bar"><span class="title-bar-text" id="image-viewer-title"><div class="emoji">🖼️</div> Image Viewer</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content" id="image-viewer-content" style="text-align: center; background: #333;">
+            <img id="image-viewer-img" src="" alt="viewer image" style="max-width: 100%; max-height: 280px; border: 2px solid white;">
+            <p id="image-viewer-caption" style="color: white; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="netscape-window" class="window" style="width: 600px; height: 400px; top: 140px; left: 300px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">🌐</div> Netscape Navigator</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content">
+            <h3>Welcome to Netscape!</h3><p>Bookmarks:</p>
+            <ul>
+                <li onclick="discoverClue('otome_media', '[Otome Media]', 'GeoCities site: OtomeMedia.com. A corporate nightmare of buzzwords.')"><span class="emoji">🔗</span> Otome Media Corporate Site</li>
+                <li onclick="discoverClue('kielala', '[Kielala]', 'GeoCities site: Kielala\'s Art Page. Mostly video game doodles.')"><span class="emoji">🔗</span> Kielala's Art Page</li>
+                <li id="news-archive-link" onclick="accessNewsArchive()"><span class="emoji">🔗</span> News Archive: December 1999 (Archive Damaged)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="winamp-window" class="window" style="width: 350px; height: 250px; top: 170px; left: 350px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">🎵</div> Winamp</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content">
+            <h4>Playlist:</h4>
+            <ol>
+                <li>techno_mix_98.mid</li>
+                <li>gaming_anthem.mid</li>
+                <li onclick="discoverClue('hospital_recording', '[The hospital recording]', 'You hear the faint beeping of a heart monitor and painful, suppressed coughing.')">Hospital_Recording_Final.mp3</li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="diary-window" class="window" style="width: 400px; height: 300px; top: 200px; left: 450px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">🔒</div> Diary_Final_Draft.txt</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content">
+            <p>This file is encrypted.</p>
+            <p>Password: <input type="text" id="diary-password" /> <button class="win-button" onclick="checkPassword()">Unlock</button></p>
+        </div>
+    </div>
+
+    <div id="help-window" class="window" style="width: 450px; height: 380px; top: 100px; left: 100px;">
+        <div class="title-bar"><span class="title-bar-text"><div class="emoji">❓</div> Help & About</span><div class="title-bar-controls"><button class="close-btn">x</button></div></div>
+        <div class="window-content">
+            <h3>About GHOST.SYS</h3>
+            <p>This is an interactive narrative game created for the <b>Code with Kiro Hackathon</b>.</p>
+            <p>The goal is to uncover the story by exploring the desktop, reading files, and interacting with the system's previous owner via the messenger.</p>
+            <hr>
+            <h4>Resources Used:</h4>
+            <ul>
+                <li><b>Fonts:</b> W95FA from Stylebot CDN</li>
+                <li><b>Images:</b> Placeholders from placehold.co</li>
+                <li><b>Sounds:</b> Windows 2000 Shutdown from winhistory.de</li>
+                <li><b>Development:</b> Vanilla HTML, CSS, JavaScript</li>
+            </ul>
+            <hr>
+            <p>Thank you for playing!</p>
+        </div>
+    </div>
+</div>
+
+<!-- --- TASKBAR & START MENU --- -->
+<div class="taskbar">
+    <button class="start-button" id="start-btn">
+        <img src="https://i.imgur.com/gKwvfW9.png" width="20" height="20" alt="Start">
+        <span>Start</span>
+    </button>
+    <div class="clock" id="clock">10:14 PM</div>
+</div>
+<div id="start-menu" style="display: none;">
+    <div class="start-menu-sidebar"><span>Windows 2000</span></div>
+    <ul class="start-menu-items">
+        <li><span class="emoji">⚙️</span> Settings</li>
+       <li onclick="openWindow('search-window')"><span class="emoji">🔎</span> Search</li>
+        <li onclick="openWindow('help-window')"><span class="emoji">❓</span> Help</li>
+        <li><span class="emoji">🏃</span> Run...</li>
+        <li class="start-menu-separator"></li>
+        <li onclick="showShutdownDialog()"><span class="emoji">🔌</span> Shut Down...</li>
+    </ul>
+</div>
+
+<!-- --- OVERLAYS --- -->
+<div id="glitch-overlay" class="overlay"></div>
+<div id="shutdown-dialog" class="overlay">
+    <div class="shutdown-window">
+        <h3>Shut Down Windows</h3>
+        <p>What do you want the computer to do?</p>
+        <select><option>Shut down</option><option>Restart</option></select>
+        <br><br>
+        <button class="win-button" onclick="playShutdown()">OK</button>
+        <button class="win-button" onclick="document.getElementById('shutdown-dialog').style.display='none'">Cancel</button>
+    </div>
+</div>
+<div id="fade-to-black" class="overlay">
+    <div id="final-text"></div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const gameState = {
+        messengerOpened: false, ilContacted: false,
+        unlockedTopics: new Set(),
+        storyNode: 'start', diaryRead: false,
+        confrontationReady: false, gameEnded: false, epilogueStarted: false,
+        hasMentionedPromise: false
+    };
+
+    const chatHistory = document.querySelector('#messenger-window .chat-history');
+    const chatOptions = document.getElementById('chat-options');
+
+    // --- NARRATIVE & FILE DATA ---
+    const storyData = {
+        'start': { response: ["Who the fuck are you?", "And why are you touching my stuff?"], options: [ { text: "I don't know.", action: 'start_i_dont_know' }, { text: "Who are YOU?", action: 'start_who_are_you' }, { text: "Nice computer.", action: 'start_nice_computer' } ] },
+        'start_who_are_you': { response: ["I'm the one whose terminal you've accessed. A simple fact you seem to be ignoring.", "My time is limited. State your purpose."], options: [ { text: "I don't know how I got here.", action: 'start_i_dont_know' }, {text: "Just looking around.", action: 'start_looking_around'}] },
+        'start_i_dont_know': { response: ["A lame excuse. Predictable.", "Just... don't interfere. I have critical work to do.", "The Y2K transition for Otome Media rests on my shoulders. There is no room for error."], options: [] },
+        'start_looking_around': { response: ["This isn't a public library. This is a private terminal with sensitive corporate data.", "My family's legacy is on these drives. Cease your 'looking' and state your purpose."], options: [{ text: "I don't have a purpose. I'm just... here.", action: 'start_i_dont_know' }] },
+        'start_nice_computer': { response: ["It's a tool. Nothing more. It has to be perfectly stable for the turn of the millennium.", "One miscalculation, one corrupted byte, and everything my father built could be compromised."], options: [] },
+        'topic_otome_media': { response: ["My family's legacy. My father's obsession.", "I'm expected to assume control after the Y2K scare is over. It's not a choice. It's my duty."], options: [] },
+        'topic_kielala': { response: ["...my younger brother.", "He's... rebellious. Wastes time with video games and childish drawings.", "He doesn't understand the meaning of responsibility. Of what is expected of us."], options: [{ text: "You seem worried about him.", action: 'ask_more_kielala' }, { text: "He's just a kid.", action: 'kielala_is_kid'}] },
+        'kielala_is_kid': { response: ["Childhood is a luxury our family cannot afford.", "He needs to be strong. The world is not kind to the weak. It is my job to ensure he is prepared."], options: []},
+        'ask_more_kielala': { response: ["Worry is an inefficient emotion. It is... a liability.", "I just... need him to be safe. To follow the path that has been set for him. The path I am securing.", "I made him a promise. That I would handle everything, so he would never have to."], onEnter: () => { if (!gameState.hasMentionedPromise) { gameState.hasMentionedPromise = true; revealIcon('icon-diary'); } }, options: [] },
+        'topic_hospital_recording': { response: ["What about it? It's a corrupted audio file. Meaningless noise.", "I told you, don't pry. My health is optimal.", "The only sickness that matters right now is the Y2K bug, and I am the cure."], options: [] },
+        'topic_diary': { response: ["That's a personal system backup. Encrypted for a reason.", "It contains sensitive transition plans. It is none of your concern."], options: [] },
+        'topic_y2k': { response: ["Are you an idiot? It's the end of the world for unprepared systems.", "Every two-digit year code could fail. Banking, infrastructure, communications. Total collapse.", "Father has invested millions in our readiness. I am the final failsafe. I cannot fail."], options: [] }
+    };
+
+    const fileData = {
+        'drive_c': { title: '💽 Local Disk (C:)', content: `<ul><li onclick="openFileViewer('my_docs')"><span class="emoji">📁</span> My Documents</li><li onclick="openFileViewer('windows_folder')"><span class="emoji">📁</span> WINDOWS</li></ul>` },
+        'my_docs': { title: '📁 My Documents', content: `<ul><li onclick="openFileViewer('chat_logs')"><span class="emoji">📁</span> Chat_Logs</li><li onclick="openFileViewer('family_photos')"><span class="emoji">📁</span> Family_Photos</li><li onclick="openTextViewer('notes')"><span class="emoji">📄</span> Notes.txt</li><li onclick="openTextViewer('corporate_memo')"><span class="emoji">📄</span> Y2K_memo.txt</li></ul>` },
+        'windows_folder': { title: '📁 WINDOWS', content: `<ul><li onclick="openTextViewer('sys_config')"><span class="emoji">📄</span> sys_config.bak</li></ul>` },
+        'chat_logs': { title: '📁 Chat_Logs', content: `<ul><li onclick="openTextViewer('log_mom')"><span class="emoji">📄</span> mom_log.txt</li><li onclick="openTextViewer('log_father')"><span class="emoji">📄</span> father_log.txt</li><li onclick="openTextViewer('log_kielala')"><span class="emoji">📄</span> kielala_log.txt</li><li onclick="openTextViewer('draft_email')"><span class="emoji">📄</span> draft_email.txt</li></ul>` },
+        'family_photos': { title: '📁 Family_Photos', content: `<ul><li onclick="openImageViewer('https://placehold.co/400x300/222222/FFFFFF/png?text=A+Memory', 'kielala_and_me.jpg')"><span class="emoji">🖼️</span> kielala_and_me.jpg</li><li><span class="emoji">🚧</span> family_vacation_98.jpg (Corrupted)</li></ul>` },
+    };
+
+    const textFileData = {
+        'notes': { title: 'Notes.txt', content: "Shopping List (12/20/1999)\n- Bottled Water (case)\n- Canned goods\n- Batteries (AA, D)\n- Blank CDs for backup\n- More cough syrup\n- Tissues" },
+        'log_mom': { title: 'mom_log.txt', content: "Kikyo_O: Ilmimi, have you taken your medication? Your coughing is getting worse on the phone. You sound tired. You must maintain your health.\nIL_Otome99: I'm fine, mother. It's just stress.\nKikyo_O: Stress is a form of weakness. Do not be weak." },
+        'log_father': { title: 'father_log.txt', content: "Siririll_O: Status report.\nIL_Otome99: All systems are green for the Y2K transition. I've personally audited every critical server.\nSiririll_O: The board is concerned about your health affecting the transition. Your dedication is noted, but results are what matter. Don't be a liability." },
+        'log_kielala': { title: 'kielala_log.txt', content: "Kielala_O: big bro stop working so hard pls lets play video games\nIL_Otome99: I don't have time for games, Kielala.\nKielala_O: r u okay? u sound tired on the phone\nIL_Otome99: I am busy. We will talk after the new year." },
+        'draft_email': { title: 'draft_email.txt', content: "TO: Kielala_O\nSUBJECT: Your Future\n\n[DRAFT 1]\nKielala, your continued defiance and lack of discipline is unacceptable. You will cease these childish pursuits at once and begin your corporate training as scheduled on January 3rd.\n\n[DRAFT 2]\nKielala, we need to discuss your responsibilities. The path father has set out for you is for your own good.\n\n[DRAFT 3]\nKielala,\n\nI know I am hard on you. It's because I have to be.\n\nWait for me. After this is over, we'll talk.\n\n-Ilmimi" },
+        'corporate_memo': { title: 'Y2K_memo.txt', content: "MEMORANDUM\n\nTO: All Department Heads\nFROM: Illmimi Otome, Project Lead, Y2K Compliance\nDATE: 12/22/1999\nSUBJECT: FINAL LOCKDOWN PROTOCOL\n\nAs per phase 4 of the Y2K transition strategy, a full system lockdown will be initiated at 1800 on 12/30/1999. All on-site personnel will be restricted to essential staff only. I will be personally overseeing the rollover from the primary data hub.\n\nThere is no margin for error. Success is the only acceptable outcome.\n\nI.O." },
+        'sys_config': { title: '📄 sys_config.bak', content: `; System Backup Configuration\n; DO NOT EDIT\n[USER_PREF]\nPASS_HINT=My one responsibility. My only promise.\nPASS_VAL=K13lAlA_my_pr0m1s3` },
+    };
+
+    const searchData = {
+        'otome': { title: 'Search Results: "otome"', content: `<h4>Otome Media Group (OMG)</h4><p>A global communications conglomerate founded by Siririll Otome. OMG is a leader in satellite and fiber optic networking.</p><h4>Otome Media Poised for Y2K</h4><p>OMG has invested heavily in Y2K compliance, with CEO Siririll Otome stating their systems are '100% secure'. The project is being spearheaded by his eldest son and heir, Illmimi Otome, noted for his tireless work ethic.</p>` },
+        'y2k': { title: 'Search Results: "y2k"', content: `<h4>The Millennium Bug: Fact or Fiction?</h4><p>Experts are divided on the potential impact of the Y2K bug. Some predict catastrophic failures in global banking, utilities, and government systems when clocks roll over to '00'. Others claim it's an overblown media frenzy. Most corporations are spending billions to upgrade their systems just in case.</p><p>New Topic Unlocked: [Y2K]</p>`},
+        'december 1999': { title: 'Search Results: "december 1999"', content: `<h4>News Archive Snippets - Dec. 1999</h4><p>- Markets jittery ahead of Y2K deadline.</p><p>- Health officials report a particularly aggressive strain of influenza sweeping the nation, with respiratory complications being a primary concern.</p><p>- Tech stocks continue to soar amidst dot-com boom.</p>`},
+        'illness': { title: 'Search Results: "illness"', content: `<h4>Medical Database Search: Respiratory Illness</h4><p>Common symptoms of severe pulmonary and respiratory illnesses include persistent coughing, shortness of breath, fatigue, and chest pain. Conditions can be exacerbated by stress and a compromised immune system.</p>` },
+        'cough': { title: 'Search Results: "cough"', content: `<h4>Medical Database Search: Respiratory Illness</h4><p>Common symptoms of severe pulmonary and respiratory illnesses include persistent coughing, shortness of breath, fatigue, and chest pain. Conditions can be exacerbated by stress and a compromised immune system.</p>` },
+        'kielala': { title: 'Search Results: "kielala"', content: `<p>0 files found containing "kielala".</p><p><i>The system does not find anything on him. He exists outside of this corporate world.</i></p>`},
+        'promise': { title: 'Search Results: "promise"', content: `<p>0 files found containing "promise".</p><p><i>A search for this word feels like shouting into the void. It is a personal, abstract concept, not data to be indexed.</i></p>`},
+    };
+
+    window.runSearch = function() {
+        const term = document.getElementById('search-term').value.toLowerCase().trim();
+        const resultsContent = document.getElementById('search-results-content');
+        if (!term) return;
+
+        let found = false;
+        for (const key in searchData) {
+            if (term.includes(key)) {
+                const result = searchData[key];
+                resultsContent.innerHTML = `<h3>${result.title}</h3>${result.content}`;
+                found = true;
+                if (key === 'y2k' && !gameState.unlockedTopics.has('y2k')) {
+                    gameState.unlockedTopics.add('y2k');
+                    addMessage('System', 'New Topic Unlocked: [Y2K]', 'system');
+                    updateOptions();
+                }
+                break;
+            }
+        }
+
+        if (!found) {
+            resultsContent.innerHTML = `<p>No system-wide results found for "${term}".</p>`;
+        }
+    }
+
+    // --- CORE NARRATIVE & UI FUNCTIONS ---
+    function addMessage(sender, text, senderClass, isHTML = false) {
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message', senderClass);
+        if (isHTML) {
+            msgDiv.innerHTML = `<span class="sender">${sender}:</span> ${text}`;
+        } else {
+            const senderSpan = document.createElement('span');
+            senderSpan.className = 'sender';
+            senderSpan.textContent = `${sender}:`;
+            msgDiv.appendChild(senderSpan);
+            msgDiv.append(` ${text}`);
+        }
+        chatHistory.appendChild(msgDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function sendMessages(messageArray, sender, senderClass) {
+        let delay = 500;
+        messageArray.forEach((msg) => {
+            setTimeout(() => addMessage(sender, msg, senderClass), delay);
+            delay += 1000 + msg.length * 30;
+        });
+        return delay;
+    }
+    
+    function updateOptions() {
+        if (gameState.gameEnded) return;
+        if (gameState.confrontationReady) { setupFinalConfrontation(); return; }
+        chatOptions.innerHTML = '';
+        const node = storyData[gameState.storyNode];
+        if (node?.options) {
+            node.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.textContent = option.text;
+                btn.onclick = () => handleChoice(option.action, option.text);
+                chatOptions.appendChild(btn);
+            });
+        }
+        gameState.unlockedTopics.forEach(topicId => {
+            const topicData = {
+                'otome_media': { text: '[Otome Media]', action: 'topic_otome_media' },
+                'kielala': { text: '[Kielala]', action: 'topic_kielala' },
+                'hospital_recording': { text: '[The hospital recording]', action: 'topic_hospital_recording' },
+                'diary': { text: '[The locked file]', action: 'topic_diary' },
+                'y2k': { text: '[Y2K]', action: 'topic_y2k' }
+            };
+            const topic = topicData[topicId];
+            if (topic && !document.querySelector(`button[onclick*="${topic.action}"]`)) {
+                const btn = document.createElement('button');
+                btn.textContent = topic.text;
+                btn.onclick = () => handleChoice(topic.action, topic.text);
+                chatOptions.appendChild(btn);
+            }
+        });
+    }
+
+    function handleChoice(action, text) {
+        if (gameState.gameEnded) return;
+        addMessage('You', text, 'player');
+        chatOptions.innerHTML = '<p>...</p>';
+        gameState.storyNode = action;
+        const node = storyData[action];
+        setTimeout(() => {
+            let delay = 0;
+            if (node) {
+                if (node.onEnter) node.onEnter();
+                const response = Array.isArray(node.response) ? node.response : [node.response];
+                delay = sendMessages(response, 'IL_Otome99', 'il');
+            } else {
+                delay = sendMessages(['...'], 'IL_Otome99', 'il');
+            }
+            setTimeout(updateOptions, delay);
+        }, 1000 + Math.random() * 500);
+    }
+    
+    window.openMessenger = function() {
+        if (gameState.epilogueStarted) return;
+        openWindow('messenger-window');
+        if (!gameState.messengerOpened) {
+            gameState.messengerOpened = true;
+            setTimeout(() => {
+                if (!gameState.ilContacted) {
+                    gameState.ilContacted = true;
+                    const delay = sendMessages(storyData.start.response, 'IL_Otome99', 'il');
+                    gameState.storyNode = 'start';
+                    setTimeout(updateOptions, delay);
+                }
+            }, 10000);
+        }
+    }
+
+    window.discoverClue = function(clueId, clueText, flavorText) {
+        if (gameState.unlockedTopics.has(clueId) || gameState.gameEnded) return;
+        gameState.unlockedTopics.add(clueId);
+        addMessage('System', flavorText, 'system');
+        addMessage('System', `New Topic Unlocked: ${clueText}`, 'system');
+        updateOptions();
+    }
+
+    window.accessNewsArchive = function() {
+        if (gameState.diaryRead) {
+            if (gameState.confrontationReady) return;
+            gameState.confrontationReady = true;
+            const link = document.getElementById('news-archive-link');
+            link.innerHTML = `<span class="emoji">🔗</span> Otome Media Scion, Illmimi Otome, Dies of Rare Pulmonary Illness. Aged 20. December 28th, 1999.`;
+            link.style.cssText = 'background: #000080; color: white;';
+            addMessage('System', 'You piece the clues together. The final truth is unlocked.', 'system');
+            updateOptions();
+        } else {
+             addMessage('System', 'ERROR 404: Archive damaged. You need more information to access this page.', 'system');
+        }
+    }
+
+    function setupFinalConfrontation() {
+        chatOptions.style.display = 'none';
+        const finalInput = document.getElementById('final-confrontation-input');
+        finalInput.style.display = 'block';
+        const wordBank = document.getElementById('final-word-bank');
+        const headline = "Otome Media Scion, Illmimi Otome, Dies of Rare Pulmonary Illness.".split(' ');
+        let assembledMessage = [];
+        wordBank.innerHTML = '';
+        headline.forEach(word => {
+            const btn = document.createElement('button');
+            btn.textContent = word;
+            btn.onclick = () => {
+                assembledMessage.push(word);
+                document.getElementById('final-message-bar').textContent = assembledMessage.join(' ');
+                btn.disabled = true;
+                if (assembledMessage.length === headline.length) {
+                    wordBank.innerHTML = '';
+                    const sendBtn = document.createElement('button');
+                    sendBtn.textContent = 'Send';
+                    sendBtn.onclick = triggerEndSequence;
+                    wordBank.appendChild(sendBtn);
+                }
+            };
+            wordBank.appendChild(btn);
+        });
+    }
+
+    function triggerEndSequence() {
+        if (gameState.gameEnded) return;
+        gameState.gameEnded = true;
+        addMessage('You', document.getElementById('final-message-bar').textContent, 'player');
+        document.getElementById('final-confrontation-input').innerHTML = '';
+        
+        setTimeout(() => { document.getElementById('desktop').style.animation = 'screen-glitch 0.3s steps(2, end) infinite'; }, 2000);
+        
+        const finalLines = [
+            { text: "What is this joke?", delay: 4000 }, { text: "That's impossible. The new millennium hasn't even started.", delay: 3000 },
+            { text: "Y2K didn't break the computers.", delay: 3000 }, { text: "It broke... me?", delay: 4000 },
+            { text: "...", delay: 5000 }, { text: "Tell Kielala... I'm sorry.", delay: 4000 }
+        ];
+        let cumulativeDelay = 0;
+        finalLines.forEach(line => {
+            setTimeout(() => sendMessages([line.text], 'IL_Otome99', 'il'), cumulativeDelay);
+            cumulativeDelay += line.delay;
+        });
+        setTimeout(() => {
+            document.getElementById('desktop').style.animation = '';
+            showShutdownDialog(true);
+        }, cumulativeDelay + 2000);
+    }
+    
+    window.showShutdownDialog = function(isEndGame = false) {
+        if (gameState.gameEnded && !isEndGame) return;
+        document.getElementById('shutdown-dialog').style.display = 'flex';
+    }
+    
+    window.playShutdown = function() {
+        document.getElementById('shutdown-dialog').style.display = 'none';
+        new Audio('https://www.winhistory.de/more/winstart/sounds/win2000shutdown.mp3').play();
+        const fade = document.getElementById('fade-to-black');
+        fade.style.display = 'block';
+        setTimeout(() => { fade.style.opacity = 1; }, 100);
+        setTimeout(() => { document.getElementById('final-text').textContent = "It's now safe to turn off your computer."; }, 4000);
+        setTimeout(startEpilogue, 8000);
+    }
+
+    function startEpilogue() {
+        gameState.epilogueStarted = true;
+        const fade = document.getElementById('fade-to-black');
+        fade.style.opacity = 0;
+        setTimeout(() => { fade.style.display = 'none'; document.getElementById('final-text').textContent = ''; }, 3000);
+        
+        document.querySelectorAll('.window').forEach(w => w.style.display = 'none');
+        chatHistory.innerHTML = '';
+        document.getElementById('input-area').innerHTML = '<p style="text-align:center; color: #808080;">-- CONNECTION TERMINATED --</p>';
+        openWindow('messenger-window', true); // Force open for epilogue
+
+        const epilogueMessages = [
+            { sender: 'Kielala_O', senderClass: 'kielala', text: 'bro? are you there?', date: '01/01/2000' },
+            { sender: 'Kielala_O', senderClass: 'kielala', text: 'i miss you.', date: '07/07/2000' },
+            { sender: 'Kielala_O', senderClass: 'kielala', text: 'happy birthday big bro. i drew you something.<br><img class="birthday-image" src="https://placehold.co/400x250/000000/FFFFFF/png?text=Happy+Birthday+Big+Bro" alt="drawing">', date: '07/07/2001', isHTML: true },
+            { sender: 'Kielala_O', senderClass: 'kielala', text: 'i wish you were here', date: '12/28/2001' },
+            { sender: 'Kielala_O', senderClass: 'kielala', text: 'i still think about your promise. i\'m trying to be strong.', date: '05/15/2002' },
+            { sender: 'Kielala_O', senderClass: 'kielala', text: 'happy birthday ilmimi', date: '07/07/2002' },
+            { sender: 'System', senderClass: 'system', text: '...<br>...<br>USER NOT FOUND', date: '...', isHTML: true}
+        ];
+        
+        let messageDelay = 3000;
+        epilogueMessages.forEach(msg => {
+            setTimeout(() => {
+                document.getElementById('clock').textContent = msg.date;
+                addMessage(msg.sender, msg.text, msg.senderClass, msg.isHTML);
+            }, messageDelay);
+            messageDelay += 4000;
+        });
+    }
+
+    // --- WINDOW & UI MANAGEMENT ---
+    let zIndexCounter = 100;
+    document.querySelectorAll('.window').forEach(win => {
+        const titleBar = win.querySelector('.title-bar');
+        win.addEventListener('mousedown', () => { win.style.zIndex = ++zIndexCounter; });
+        if (titleBar) {
+            let isDragging = false, offsetX, offsetY;
+            titleBar.addEventListener('mousedown', (e) => { 
+                if (e.target.classList.contains('close-btn')) return;
+                isDragging = true; 
+                offsetX = e.clientX - win.offsetLeft; 
+                offsetY = e.clientY - win.offsetTop; 
+                win.style.zIndex = ++zIndexCounter; 
+            });
+            document.addEventListener('mousemove', (e) => { if (isDragging) { win.style.left = `${e.clientX - offsetX}px`; win.style.top = `${e.clientY - offsetY}px`; } });
+            document.addEventListener('mouseup', () => { isDragging = false; });
+        }
+        win.querySelector('.close-btn')?.addEventListener('click', () => { win.style.display = 'none'; });
+    });
+
+    window.openWindow = function(windowId, force = false) {
+        if(gameState.epilogueStarted && !force) return;
+        const win = document.getElementById(windowId);
+        win.style.display = 'flex'; win.style.zIndex = ++zIndexCounter;
+    }
+
+    window.openFileViewer = function(fileId) {
+        const data = fileData[fileId]; if (!data) return;
+        document.getElementById('file-viewer-title').innerHTML = data.title;
+        document.getElementById('file-viewer-content').innerHTML = data.content;
+        openWindow('file-viewer-window');
+    }
+
+    window.openTextViewer = function(fileId) {
+        const data = textFileData[fileId]; if (!data) return;
+        document.getElementById('text-viewer-title').innerHTML = `📄 ${data.title}`;
+        document.getElementById('text-viewer-content').textContent = data.content;
+        openWindow('text-viewer-window');
+    }
+    
+    window.openImageViewer = function(url, caption) {
+        document.getElementById('image-viewer-img').src = url;
+        document.getElementById('image-viewer-caption').textContent = caption;
+        openWindow('image-viewer-window');
+    }
+
+    window.checkPassword = function() {
+        const password = document.getElementById('diary-password').value;
+        if (password === 'K13lAlA_my_pr0m1s3') {
+            const content = document.querySelector('#diary-window .window-content');
+            content.innerHTML = `<h4>To Kielala,</h4><p>If you're reading this, it means I messed up. The doctors keep saying things I don't understand... It's hard to breathe. I'm supposed to be the strong one... but I'm just tired. The coughing won't stop. I'm sorry if I was ever too hard on you. I just wanted you to be safe. Wait for me. Once this Y2K bug is over, we'll...</p>`;
+            gameState.diaryRead = true;
+            addMessage('System', 'Diary Unlocked. The file contains an unsent letter.', 'system');
+        } else { alert('Incorrect Password.'); }
+    }
+
+    function revealIcon(iconId) {
+        const icon = document.getElementById(iconId);
+        if (icon.style.display !== 'block') {
+            icon.style.display = 'block';
+            icon.classList.add('new-icon');
+            const iconName = icon.querySelector('span').textContent;
+            addMessage('System', `A new file has appeared on the desktop: ${iconName}`, 'system');
+            
+            if (iconId === 'icon-diary') {
+                gameState.unlockedTopics.add('diary');
+                addMessage('System', 'New Topic Unlocked: [The locked file]', 'system');
+                updateOptions();
+            }
+        }
+    }
+    
+    document.getElementById('clock').textContent = `10:14 PM 12/27/1999`;
+    const startBtn = document.getElementById('start-btn');
+    const startMenu = document.getElementById('start-menu');
+    startBtn.addEventListener('click', (e) => { 
+        e.stopPropagation(); 
+        startMenu.style.display = startMenu.style.display === 'flex' ? 'none' : 'flex'; 
+    });
+    document.addEventListener('click', (e) => { 
+        if (!startMenu.contains(e.target) && e.target !== startBtn) {
+            startMenu.style.display = 'none'; 
+        }
+    });
+});
+</script>
+
+</body>
+</html>
